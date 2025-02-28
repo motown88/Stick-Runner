@@ -182,12 +182,24 @@
                     });
                 }
                 // Spawn additional platforms
-                if (Math.random() < 0.025) { // 2.5% chance per frame
-                    platforms.push({
-                        x: 800 + Math.random() * 200,
-                        y: 280 + Math.random() * 40 // 280-320 range
-                    });
-                }
+if (Math.random() < 0.015) { // Reduced to 1.5% chance per frame
+    const newX = 800 + Math.random() * 200;
+    const newY = 280 + Math.random() * 40; // 280-320 range
+    const minGap = 80; // Minimum distance between platforms (adjustable)
+    let tooClose = false;
+
+    // Check if the new platform would be too close to existing ones
+    platforms.forEach(p => {
+        if (Math.abs(p.x - newX) < minGap) {
+            tooClose = true;
+        }
+    });
+
+    // Only spawn if it's not too close to another platform
+    if (!tooClose) {
+        platforms.push({ x: newX, y: newY });
+    }
+}
 
                 // Spawn background objects
                 if (Math.random() < 0.01) {
