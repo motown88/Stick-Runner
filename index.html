@@ -181,25 +181,23 @@
                         y: 350 - Math.random() * 50
                     });
                 }
-                // Spawn additional platforms
-if (Math.random() < 0.015) { // Reduced to 1.5% chance per frame
-    const newX = 800 + Math.random() * 200;
-    const newY = 280 + Math.random() * 40; // 280-320 range
-    const minGap = 80; // Minimum distance between platforms (adjustable)
-    let tooClose = false;
+                // Spawn additional platforms with reduced frequency and gap check
+                if (Math.random() < 0.015) { // Reduced to 1.5% chance per frame
+                    const newX = 800 + Math.random() * 200;
+                    const newY = 280 + Math.random() * 40; // 280-320 range
+                    const minGap = 80; // Minimum distance between platforms
+                    let tooClose = false;
 
-    // Check if the new platform would be too close to existing ones
-    platforms.forEach(p => {
-        if (Math.abs(p.x - newX) < minGap) {
-            tooClose = true;
-        }
-    });
+                    platforms.forEach(p => {
+                        if (Math.abs(p.x - newX) < minGap) {
+                            tooClose = true;
+                        }
+                    });
 
-    // Only spawn if it's not too close to another platform
-    if (!tooClose) {
-        platforms.push({ x: newX, y: newY });
-    }
-}
+                    if (!tooClose) {
+                        platforms.push({ x: newX, y: newY });
+                    }
+                }
 
                 // Spawn background objects
                 if (Math.random() < 0.01) {
@@ -329,11 +327,25 @@ if (Math.random() < 0.015) { // Reduced to 1.5% chance per frame
                 ctx.fillRect(p.x, p.y, 60, 10);
             });
 
+            // Draw hearts instead of text
+            ctx.fillStyle = '#ff0000'; // Red hearts
+            for (let i = 0; i < hearts; i++) {
+                const x = 10 + i * 25; // Spacing hearts 25px apart
+                const y = 20; // Position near top-left
+                ctx.beginPath();
+                ctx.moveTo(x, y + 5);
+                ctx.quadraticCurveTo(x - 5, y - 5, x - 10, y + 5);
+                ctx.quadraticCurveTo(x - 15, y + 15, x, y + 20);
+                ctx.quadraticCurveTo(x + 15, y + 15, x + 10, y + 5);
+                ctx.quadraticCurveTo(x + 5, y - 5, x, y + 5);
+                ctx.fill();
+            }
+
+            // HUD (Score, Time, Speed)
             ctx.fillStyle = '#ffffff';
             ctx.font = '20px Arial';
-            ctx.fillText(`Hearts: ${hearts}`, 10, 30);
             ctx.fillText(`Score: ${score}`, 700, 30);
-            ctx.fillText(`Time: ${Math.floor(timeElapsed)}`, 400, 30);
+            ctx.fillText(`Time: ${timeElapsed.toFixed(2)}`, 400, 30); // Time with hundredths
             ctx.fillText(`Speed: ${scrollSpeed.toFixed(1)}`, 300, 60);
 
             if (gameOver) {
