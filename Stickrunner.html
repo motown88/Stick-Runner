@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick Jumper</title>
+    <style>
+        canvas {
+            border: 1px solid white;
+            max-width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false };
+        const gravity = 0.4;
+        const jumpStrength = -10;
+        let hearts = 3;
+        let score = 0;
+        let timeElapsed = 0;
+        let scrollSpeed = 3;
+        let gameOver = false;
+
+        // Foreground objects
+        let obstacles = [
+            { type: 'spike', x: 300, y: 350 },
+            { type: 'spike', x: 600, y: 350 }
+        ];
+        let coins = [
+            { x: 250, y: 320 },
+            { x: 450, y: 300 }
+        ];
+        let platforms = [];
+
+        // Background objects
+        let mountains = [
+            { x: 200, y: 350 },
+            { x: 500, y: 350 }
+        ];
+        let trees = [
+            { x: 300, y: 350 },
+            { x: 700, y: 350 }
+        ];
+
+        // Input
+        canvas.addEventListener('touchstart', handleTouch);
+        document.addEventListener('keydown', handleKey);
+
+        function handleTouch(e) {
+            e.preventDefault();
+            if (gameOver) {
+                restartGame();
+            } else if (!player.jumping) {
+                player.vy = jumpStrength;
+                player.jumping = true;
+                player.onPlatform = false;
+            }
+        }
+
+        function handleKey(e) {
+            if (e.code === 'Space') {
+                if (gameOver) {
+                    restartGame();
+                } else if (!player.jumping) {
+                    player.vy = jumpStrength;
+                    player.jumping = true;
+                    player.onPlatform = false;
+                }
+            }
+        }
+
+        function restartGame() {
+            player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false };
+            hearts = 3;
+            score = 0;
+            timeElapsed = 0;
+            scrollSpeed = 3;
+            gameOver = false;
+            obstacles = [
+                { type: 'spike', x: 300, y: 350 },
+                { type: 'spike', x: 600, y: 350 }
+            ];
+            coins = [
+                { x: 250, y: 320 },
+                { x: 450, y: 300 }
+            ];
+            platforms = [];
+            mountains = [
+                { x: 200, y: 350 },
+                { x: 500, y: 350 }
+            ];
+            trees = [
+                { x: 300, y: 350 },
+                { x: 700, y: 350 }
+            ];
+        }
+
+        // Game loop
+        function update() {
+            // Player physics
+            player.vy += gravity;
+            player.y += player.vy;
+
+            // Platform collision
+            let onPlatform = false;
+            platforms.forEach(p => {
+                if (player.x + 15 > p.x && player.x < p.x + 60 &&
+                    player.y + 15 > p.y && player.y + 15 < p.y + 10 &&
+                    player.vy > 0) {
+                    player.y = p.y - 15;
+                    player.vy = 0;
+                    player.jumping = false;
+                    player.onPlatform = true;
+                    onPlatform = true;
+                }
+            });
+            if (!onPlatform && player.y > 350) {
+                player.y = 350;
+                player.vy = 0;
+                player.jumping = false;
+                player.onPlatform = false;
+            }
+
+            if (!gameOver) {
+                // Scroll and speed increase
+                timeElapsed += 1 / 60;
+                if (timeElapsed % 10 < 0.017) {
+                    scrollSpeed += 0.1;
+                }
+                obstacles.forEach(o => o.x -= scrollSpeed);
+                coins.forEach(c => c.x -= scrollSpeed);
+                platforms.forEach(p => p.x -= scrollSpeed);
+                mountains.forEach(m => m.x -= scrollSpeed / 2); // Slower background scroll
+                trees.forEach(t => t.x -= scrollSpeed / 2);
+
+                // Spawn foreground objects
+                if (Math.random() < 0.02) {
+                    const newX = 800 + Math.random() * 200;
+                    let minGap = scrollSpeed * 15;
+                    let tooClose = false;
+                    obstacles.forEach(o => {
+                        if (Math.abs(o.x - newX) < minGap) {
+                            tooClose = true;
+                        }
+                    });
+
+                    obstacles.push({ type: 'spike', x: newX, y: 350 });
+                    if (tooClose) {
+                        platforms.push({
+                            x: newX - 30,
+                            y: 250
+                        });
+                    }
+                }
+                if (Math.random() < 0.03) {
+                    coins.push({
+                        x: 800 + Math.random() * 200,
+                        y: 350 - Math.random() * 50
+                    });
+                }
+
+                // Spawn background objects
+                if (Math.random() < 0.01) {
+                    mountains.push({ x: 800 + Math.random() * 200, y: 350 });
+                }
+                if (Math.random() < 0.015) {
+                    trees.push({ x: 800 + Math.random() * 200, y: 350 });
+                }
+
+                // Remove off-screen objects
+                obstacles = obstacles.filter(o => o.x > -20);
+                coins = coins.filter(c => c.x > -20);
+                platforms = platforms.filter(p => p.x > -60);
+                mountains = mountains.filter(m => m.x > -100);
+                trees = trees.filter(t => t.x > -50);
+
+                // Collisions
+                obstacles.forEach((o, i) => {
+                    if (collides(player, o)) {
+                        hearts--;
+                        obstacles.splice(i, 1);
+                        if (hearts <= 0) gameOver = true;
+                    }
+                });
+                coins.forEach((c, i) => {
+                    if (collides(player, c)) {
+                        score += 10;
+                        coins.splice(i, 1);
+                    }
+                });
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function collides(a, b) {
+            const playerWidth = 15;
+            const playerHeight = 15;
+            const objWidth = 20;
+            const objHeight = 20;
+            return a.x < b.x + objWidth && 
+                   a.x + playerWidth > b.x && 
+                   a.y < b.y + objHeight && 
+                   a.y + playerHeight > b.y;
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Background scenery
+            ctx.fillStyle = '#800080'; // Purple mountains
+            mountains.forEach(m => {
+                ctx.beginPath();
+                ctx.moveTo(m.x, m.y);
+                ctx.lineTo(m.x + 50, m.y - 100);
+                ctx.lineTo(m.x + 100, m.y);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#00ff00'; // Green trees
+            trees.forEach(t => {
+                ctx.fillRect(t.x + 10, t.y - 20, 10, 20); // Trunk
+                ctx.beginPath();
+                ctx.moveTo(t.x, t.y - 20);
+                ctx.lineTo(t.x + 15, t.y - 50);
+                ctx.lineTo(t.x + 30, t.y - 20);
+                ctx.fill();
+            });
+
+            // Foreground
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(0, 350, canvas.width, 50);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y - 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y);
+            ctx.lineTo(player.x, player.y + 20);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff0000';
+            obstacles.forEach(o => {
+                ctx.beginPath();
+                ctx.moveTo(o.x, o.y);
+                ctx.lineTo(o.x + 10, o.y - 30);
+                ctx.lineTo(o.x + 20, o.y);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#ffff00';
+            coins.forEach(c => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#00ffff';
+            platforms.forEach(p => {
+                ctx.fillRect(p.x, p.y, 60, 10);
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Hearts: ${hearts}`, 10, 30);
+            ctx.fillText(`Score: ${score}`, 700, 30);
+            ctx.fillText(`Time: ${Math.floor(timeElapsed)}`, 400, 30);
+            ctx.fillText(`Speed: ${scrollSpeed.toFixed(1)}`, 300, 60);
+
+            if (gameOver) {
+                ctx.fillText('Game Over!', 300, 200);
+                ctx.fillText('Tap to Restart', 300, 230);
+            }
+        }
+
+        update();
+    </script>
+</body>
+</html>
