@@ -29,7 +29,7 @@
         const ctx = canvas.getContext('2d');
 
         // Game variables
-        let player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false };
+        let player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false, frame: 0 };
         const gravity = 0.4;
         const jumpStrength = -10;
         let hearts = 3;
@@ -87,7 +87,7 @@
         }
 
         function restartGame() {
-            player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false };
+            player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false, frame: 0 };
             hearts = 3;
             score = 0;
             timeElapsed = 0;
@@ -139,6 +139,12 @@
             }
 
             if (!gameOver) {
+                // Animate walking
+                if (!player.jumping) {
+                    player.frame += 0.2; // Slow animation speed
+                    if (player.frame > 2 * Math.PI) player.frame -= 2 * Math.PI;
+                }
+
                 // Scroll and speed increase
                 timeElapsed += 1 / 60;
                 if (timeElapsed % 10 < 0.017) {
@@ -147,7 +153,7 @@
                 obstacles.forEach(o => o.x -= scrollSpeed);
                 coins.forEach(c => c.x -= scrollSpeed);
                 platforms.forEach(p => p.x -= scrollSpeed);
-                mountains.forEach(m => m.x -= scrollSpeed / 2); // Slower background scroll
+                mountains.forEach(m => m.x -= scrollSpeed / 2);
                 trees.forEach(t => t.x -= scrollSpeed / 2);
 
                 // Spawn foreground objects
@@ -227,7 +233,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Background scenery
-            ctx.fillStyle = '#800080'; // Purple mountains
+            ctx.fillStyle = '#800080';
             mountains.forEach(m => {
                 ctx.beginPath();
                 ctx.moveTo(m.x, m.y);
@@ -236,9 +242,9 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#00ff00'; // Green trees
+            ctx.fillStyle = '#00ff00';
             trees.forEach(t => {
-                ctx.fillRect(t.x + 10, t.y - 20, 10, 20); // Trunk
+                ctx.fillRect(t.x + 10, t.y - 20, 10, 20);
                 ctx.beginPath();
                 ctx.moveTo(t.x, t.y - 20);
                 ctx.lineTo(t.x + 15, t.y - 50);
@@ -250,14 +256,39 @@
             ctx.fillStyle = '#333333';
             ctx.fillRect(0, 350, canvas.width, 50);
 
+            // Player drawing
             ctx.strokeStyle = '#ffffff';
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(player.x, player.y - 10, 10, 0, Math.PI * 2);
+            ctx.arc(player.x, player.y - 20, 10, 0, Math.PI * 2); // Head
             ctx.fill();
+
             ctx.beginPath();
-            ctx.moveTo(player.x, player.y);
-            ctx.lineTo(player.x, player.y + 20);
+            ctx.moveTo(player.x, player.y - 10); // Body start
+            ctx.lineTo(player.x, player.y + 10); // Body end
+            if (player.jumping) {
+                // X-shape in air
+                ctx.moveTo(player.x - 15, player.y - 25);
+                ctx.lineTo(player.x + 15, player.y - 5); // Left arm up, right arm down
+                ctx.moveTo(player.x + 15, player.y - 25);
+                ctx.lineTo(player.x - 15, player.y - 5); // Right arm up, left arm down
+                ctx.moveTo(player.x - 15, player.y + 5);
+                ctx.lineTo(player.x + 15, player.y + 25); // Left leg out, right leg down
+                ctx.moveTo(player.x + 15, player.y + 5);
+                ctx.lineTo(player.x - 15, player.y + 25); // Right leg out, left leg down
+            } else {
+                // Walking animation
+                const armSwing = Math.sin(player.frame) * 10;
+                const legSwing = Math.cos(player.frame) * 10;
+                ctx.moveTo(player.x - 10, player.y - 10);
+                ctx.lineTo(player.x - 10 + armSwing, player.y); // Left arm
+                ctx.moveTo(player.x + 10, player.y - 10);
+                ctx.lineTo(player.x + 10 - armSwing, player.y); // Right arm
+                ctx.moveTo(player.x, player.y + 10);
+                ctx.lineTo(player.x - 5 + legSwing, player.y + 30); // Left leg
+                ctx.moveTo(player.x, player.y + 10);
+                ctx.lineTo(player.x + 5 - legSwing, player.y + 30); // Right leg
+            }
             ctx.stroke();
 
             ctx.fillStyle = '#ff0000';
@@ -269,7 +300,7 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#ffff00';
+            ctx.fillStyle = '#ff00ff'; // Magenta coins
             coins.forEach(c => {
                 ctx.beginPath();
                 ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
