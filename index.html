@@ -39,7 +39,7 @@
         let gameOver = false;
         let lastScore = 0;
         let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
-        let lastHeartSpawn = -15; // Track time since last special heart spawn (start negative to spawn at t=0)
+        let lastHeartSpawn = -15;
 
         // Foreground objects
         let obstacles = [
@@ -50,7 +50,7 @@
             { x: 250, y: 320 },
             { x: 450, y: 300 }
         ];
-        let specialHearts = []; // New array for special hearts
+        let specialHearts = [];
         let platforms = [];
 
         // Background objects
@@ -97,7 +97,7 @@
             timeElapsed = 0;
             scrollSpeed = 3;
             gameOver = false;
-            lastHeartSpawn = -15; // Reset to spawn first heart immediately
+            lastHeartSpawn = -15;
             obstacles = [
                 { type: 'spike', x: 300, y: 350 },
                 { type: 'spike', x: 600, y: 350 }
@@ -106,7 +106,7 @@
                 { x: 250, y: 320 },
                 { x: 450, y: 300 }
             ];
-            specialHearts = []; // Clear special hearts
+            specialHearts = [];
             platforms = [];
             mountains = [
                 { x: 200, y: 350 },
@@ -158,7 +158,7 @@
                 }
                 obstacles.forEach(o => o.x -= scrollSpeed);
                 coins.forEach(c => c.x -= scrollSpeed);
-                specialHearts.forEach(h => h.x -= scrollSpeed); // Scroll special hearts
+                specialHearts.forEach(h => h.x -= scrollSpeed);
                 platforms.forEach(p => p.x -= scrollSpeed);
                 mountains.forEach(m => m.x -= scrollSpeed / 2);
                 trees.forEach(t => t.x -= scrollSpeed / 2);
@@ -178,7 +178,7 @@
                     if (tooClose) {
                         platforms.push({
                             x: newX - 30,
-                            y: 280 + Math.random() * 40 // 280-320 range
+                            y: 280 + Math.random() * 40
                         });
                     }
                 }
@@ -194,7 +194,7 @@
                         x: 800 + Math.random() * 200,
                         y: 350 - Math.random() * 50
                     });
-                    lastHeartSpawn = timeElapsed; // Update last spawn time
+                    lastHeartSpawn = timeElapsed;
                 }
                 // Spawn additional platforms with reduced frequency and gap check
                 if (Math.random() < 0.015) {
@@ -225,7 +225,7 @@
                 // Remove off-screen objects
                 obstacles = obstacles.filter(o => o.x > -20);
                 coins = coins.filter(c => c.x > -20);
-                specialHearts = specialHearts.filter(h => h.x > -20); // Remove off-screen hearts
+                specialHearts = specialHearts.filter(h => h.x > -20);
                 platforms = platforms.filter(p => p.x > -60);
                 mountains = mountains.filter(m => m.x > -100);
                 trees = trees.filter(t => t.x > -50);
@@ -253,8 +253,8 @@
                 });
                 specialHearts.forEach((h, i) => {
                     if (collides(player, h)) {
-                        hearts++; // Increase heart count
-                        specialHearts.splice(i, 1); // Remove collected heart
+                        hearts++;
+                        specialHearts.splice(i, 1);
                     }
                 });
             }
@@ -351,7 +351,8 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#ff00ff'; // Magenta special hearts
+            // Special hearts (same as HUD hearts)
+            ctx.fillStyle = '#ff0000'; // Red, matching HUD hearts
             specialHearts.forEach(h => {
                 ctx.beginPath();
                 ctx.moveTo(h.x, h.y + 5);
