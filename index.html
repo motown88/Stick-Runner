@@ -141,7 +141,7 @@
             if (!gameOver) {
                 // Animate walking
                 if (!player.jumping) {
-                    player.frame += 0.2; // Slow animation speed
+                    player.frame += 0.2;
                     if (player.frame > 2 * Math.PI) player.frame -= 2 * Math.PI;
                 }
 
@@ -171,7 +171,7 @@
                     if (tooClose) {
                         platforms.push({
                             x: newX - 30,
-                            y: 250
+                            y: 280 + Math.random() * 40 // 280-320 range
                         });
                     }
                 }
@@ -179,6 +179,13 @@
                     coins.push({
                         x: 800 + Math.random() * 200,
                         y: 350 - Math.random() * 50
+                    });
+                }
+                // Spawn additional platforms
+                if (Math.random() < 0.025) { // 2.5% chance per frame
+                    platforms.push({
+                        x: 800 + Math.random() * 200,
+                        y: 280 + Math.random() * 40 // 280-320 range
                     });
                 }
 
@@ -260,34 +267,32 @@
             ctx.strokeStyle = '#ffffff';
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(player.x, player.y - 20, 10, 0, Math.PI * 2); // Head
+            ctx.arc(player.x, player.y - 20, 10, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.moveTo(player.x, player.y - 10); // Body start
-            ctx.lineTo(player.x, player.y + 10); // Body end
+            ctx.moveTo(player.x, player.y - 10);
+            ctx.lineTo(player.x, player.y + 10);
             if (player.jumping) {
-                // X-shape in air
                 ctx.moveTo(player.x - 15, player.y - 25);
-                ctx.lineTo(player.x + 15, player.y - 5); // Left arm up, right arm down
+                ctx.lineTo(player.x + 15, player.y - 5);
                 ctx.moveTo(player.x + 15, player.y - 25);
-                ctx.lineTo(player.x - 15, player.y - 5); // Right arm up, left arm down
+                ctx.lineTo(player.x - 15, player.y - 5);
                 ctx.moveTo(player.x - 15, player.y + 5);
-                ctx.lineTo(player.x + 15, player.y + 25); // Left leg out, right leg down
+                ctx.lineTo(player.x + 15, player.y + 25);
                 ctx.moveTo(player.x + 15, player.y + 5);
-                ctx.lineTo(player.x - 15, player.y + 25); // Right leg out, left leg down
+                ctx.lineTo(player.x - 15, player.y + 25);
             } else {
-                // Walking animation
                 const armSwing = Math.sin(player.frame) * 10;
                 const legSwing = Math.cos(player.frame) * 10;
                 ctx.moveTo(player.x - 10, player.y - 10);
-                ctx.lineTo(player.x - 10 + armSwing, player.y); // Left arm
+                ctx.lineTo(player.x - 10 + armSwing, player.y);
                 ctx.moveTo(player.x + 10, player.y - 10);
-                ctx.lineTo(player.x + 10 - armSwing, player.y); // Right arm
+                ctx.lineTo(player.x + 10 - armSwing, player.y);
                 ctx.moveTo(player.x, player.y + 10);
-                ctx.lineTo(player.x - 5 + legSwing, player.y + 30); // Left leg
+                ctx.lineTo(player.x - 5 + legSwing, player.y + 30);
                 ctx.moveTo(player.x, player.y + 10);
-                ctx.lineTo(player.x + 5 - legSwing, player.y + 30); // Right leg
+                ctx.lineTo(player.x + 5 - legSwing, player.y + 30);
             }
             ctx.stroke();
 
@@ -300,7 +305,7 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#ff00ff'; // Magenta coins
+            ctx.fillStyle = '#ff8000'; // Orange coins
             coins.forEach(c => {
                 ctx.beginPath();
                 ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
