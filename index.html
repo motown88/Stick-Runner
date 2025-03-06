@@ -24,9 +24,25 @@
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <!-- Audio elements -->
+    <audio id="backgroundMusic" loop>
+        <source src="music/background.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="collectSound">
+        <source src="sounds/collect.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Audio setup
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const collectSound = document.getElementById('collectSound');
+        backgroundMusic.volume = 0.5; // Lower volume (0.0 to 1.0)
+        collectSound.volume = 0.7;
+        backgroundMusic.play(); // Start background music on load
 
         // Game variables
         let player = { x: 50, y: 350, vy: 0, jumping: false, onPlatform: false, frame: 0 };
@@ -116,6 +132,8 @@
                 { x: 300, y: 350 },
                 { x: 700, y: 350 }
             ];
+            backgroundMusic.currentTime = 0; // Reset music to start
+            backgroundMusic.play(); // Restart music
         }
 
         // Game loop
@@ -242,6 +260,7 @@
                                 highScore = score;
                                 localStorage.setItem('highScore', highScore);
                             }
+                            backgroundMusic.pause(); // Stop music on game over
                         }
                     }
                 });
@@ -249,12 +268,16 @@
                     if (collides(player, c)) {
                         score += 10;
                         coins.splice(i, 1);
+                        collectSound.currentTime = 0; // Reset sound to start
+                        collectSound.play(); // Play collect sound
                     }
                 });
                 specialHearts.forEach((h, i) => {
                     if (collides(player, h)) {
                         hearts++;
                         specialHearts.splice(i, 1);
+                        collectSound.currentTime = 0; // Reset sound to start
+                        collectSound.play(); // Play collect sound
                     }
                 });
             }
@@ -352,7 +375,7 @@
             });
 
             // Special hearts (same as HUD hearts)
-            ctx.fillStyle = '#ff0000'; // Red, matching HUD hearts
+            ctx.fillStyle = '#ff0000';
             specialHearts.forEach(h => {
                 ctx.beginPath();
                 ctx.moveTo(h.x, h.y + 5);
@@ -369,7 +392,7 @@
             });
 
             // Draw hearts instead of text
-            ctx.fillStyle = '#ff0000'; // Red hearts
+            ctx.fillStyle = '#ff0000';
             for (let i = 0; i < hearts; i++) {
                 const x = 10 + i * 25;
                 const y = 20;
